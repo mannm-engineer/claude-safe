@@ -40,6 +40,10 @@ services:
       NODE_OPTIONS: --max-old-space-size=4096
       CLAUDE_CONFIG_DIR: /home/node/.claude
       POWERLEVEL9K_DISABLE_GITSTATUS: "true"
+      # Không có trong bản gốc (bản gốc ghi TZ vào image lúc build, mặc định America/Los_Angeles): đặt lúc chạy thì
+      # ghi đè giá trị trong image, đổi múi giờ không cần build lại. Sai múi giờ thì Claude thấy sai ngày, git và log
+      # ghi sai giờ.
+      TZ: Asia/Ho_Chi_Minh
       # Không có trong bản gốc: Claude Code (cài bằng npm, thư mục do node sở hữu) tự cập nhật vào lớp ghi của
       # container, mà run --rm xóa mất, nên lần chạy sau lại tải lại. Cập nhật bằng cách build lại image.
       DISABLE_AUTOUPDATER: "1"
