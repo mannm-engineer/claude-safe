@@ -24,6 +24,8 @@ services:
         CLAUDE_CODE_VERSION: latest
         GIT_DELTA_VERSION: 0.18.2
         ZSH_IN_DOCKER_VERSION: 1.2.0
+    # Một image cho mọi project (không đặt thì Compose tạo một image riêng cho mỗi project).
+    image: claude-safe
     # Như devcontainer: build mỗi lần mở (nhờ cache nên nhanh), nên thấy ngay Dockerfile đã sửa; không bao giờ tải
     # image từ registry. Mặc định (missing) thì chỉ build khi chưa có image, và còn thử tải image cùng tên trước.
     pull_policy: build
