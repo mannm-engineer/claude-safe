@@ -38,6 +38,9 @@ services:
       NODE_OPTIONS: --max-old-space-size=4096
       CLAUDE_CONFIG_DIR: /home/node/.claude
       POWERLEVEL9K_DISABLE_GITSTATUS: "true"
+      # Không có trong bản gốc: Claude Code (cài bằng npm, thư mục do node sở hữu) tự cập nhật vào lớp ghi của
+      # container, mà run --rm xóa mất, nên lần chạy sau lại tải lại. Cập nhật bằng cách build lại image.
+      DISABLE_AUTOUPDATER: "1"
       # Không có trong devcontainer.json vì công cụ devcontainer tự làm: thư mục project gắn từ máy thật có chủ sở hữu
       # khác user node (trên Windows hiện là root), nên git từ chối mọi lệnh với "detected dubious ownership". Đánh dấu
       # thư mục project là an toàn, qua biến môi trường thay cho ~/.gitconfig.
