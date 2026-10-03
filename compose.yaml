@@ -2,8 +2,10 @@
 # (https://github.com/anthropics/claude-code/tree/52c76441cae91f6891e4712306bffb057ff6fec5/.devcontainer).
 # File này thay cho devcontainer.json của họ: cùng image, cùng user, cùng volume, cùng firewall, không cần IDE.
 #
-# Cách dùng: đặt hai biến môi trường, rồi chạy
-#   docker compose -f <đường dẫn tới file này> run --rm claude
+# Cách dùng:
+#   docker build -t claude-safe <thư mục chứa file này>/anthropic  build image: một lần trên mỗi máy, và mỗi
+#                                                                    khi sửa Dockerfile hoặc init-firewall.sh
+#   docker compose -f <đường dẫn tới file này> run --rm claude  mỗi lần dùng, sau khi đặt hai biến môi trường:
 #     PROJECT_DIR   đường dẫn tới thư mục project
 #     PROJECT_NAME  tên riêng của project (chữ thường, số, '-', '_'; ví dụ shop): đặt tên volume đăng nhập và session
 # Trong container: claude (hoặc claude --dangerously-skip-permissions).
@@ -17,18 +19,11 @@ name: claude-${PROJECT_NAME:?đặt biến môi trường PROJECT_NAME (tên ri�
 
 services:
   claude:
-    build:
-      context: anthropic
-      args:
-        TZ: ${TZ:-America/Los_Angeles}
-        CLAUDE_CODE_VERSION: latest
-        GIT_DELTA_VERSION: 0.18.2
-        ZSH_IN_DOCKER_VERSION: 1.2.0
-    # Một image cho mọi project (không đặt thì Compose tạo một image riêng cho mỗi project).
+    # Image build riêng bằng docker build (xem Cách dùng), dùng chung cho mọi project.
     image: claude-safe
-    # Như devcontainer: build mỗi lần mở (nhờ cache nên nhanh), nên thấy ngay Dockerfile đã sửa; không bao giờ tải
-    # image từ registry. Mặc định (missing) thì chỉ build khi chưa có image, và còn thử tải image cùng tên trước.
-    pull_policy: build
+    # Không bao giờ tự tải: chưa build thì báo lỗi "No such image". Không đặt thì Compose tự tải
+    # docker.io/library/claude-safe từ Docker Hub.
+    pull_policy: never
     cap_add: [NET_ADMIN, NET_RAW]   # devcontainer.json: runArgs (firewall cần)
     user: node                      # devcontainer.json: remoteUser
     working_dir: /workspace         # devcontainer.json: workspaceFolder
