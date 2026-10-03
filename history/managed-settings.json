@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "SessionStart":     [{ "hooks": [{ "type": "command", "command": "bash /usr/local/bin/hook-commit.sh session-start" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "bash /usr/local/bin/hook-commit.sh before-turn" }] }],
+    "Stop":             [{ "hooks": [{ "type": "command", "command": "bash /usr/local/bin/hook-commit.sh after-turn" }] }],
+    "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "bash /usr/local/bin/hook-commit.sh session-end", "timeout": 30 }] }]
+  }
+}

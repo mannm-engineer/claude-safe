@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Cài hoặc cập nhật claude-safe trên macOS, Linux, Windows (Git Bash) (cần Docker có Docker Compose v2):
 #   curl -fsSL https://raw.githubusercontent.com/mannm-engineer/claude-safe/master/install.sh | bash
-# Tải repo về ~/.local/share/claude-safe, build image, thêm vào ~/.bashrc và ~/.zshrc một dòng nạp aliases.sh (bí danh
-# claude-safe). Mở terminal mới, đứng ở thư mục gốc của project, gõ claude-safe.
+# Tải repo về ~/.local/share/claude-safe, build image, tạo thư mục lịch sử ~/.local/share/claude-safe-history, thêm
+# vào ~/.bashrc và ~/.zshrc một dòng nạp aliases.sh (bí danh claude-safe, claude-history). Mở terminal mới, đứng ở thư
+# mục gốc của project, gõ claude-safe.
 set -euo pipefail
 
 url=https://github.com/mannm-engineer/claude-safe/archive/refs/heads/master.tar.gz
-dir="$HOME/.local/share/claude-safe"   # phải khớp với aliases.sh
+dir="$HOME/.local/share/claude-safe"   # phải khớp với compose.env và aliases.sh
 # Bí danh nằm trong aliases.sh của bản cài: cài lại là cập nhật, không phải sửa ~/.bashrc. Đã gỡ thì dòng này bỏ qua.
 line='if [ -f ~/.local/share/claude-safe/aliases.sh ]; then . ~/.local/share/claude-safe/aliases.sh; fi'
 
@@ -17,5 +18,10 @@ install_claude_safe() {
   for rc in ~/.bashrc ~/.zshrc; do grep -qsF "$line" "$rc" || echo "$line" >> "$rc"; done
 }
 
+install_history() {
+  mkdir -p "$HOME/.local/share/claude-safe-history"   # ngoài thư mục cài: cài lại xóa thư mục cài
+}
+
 install_claude_safe
-echo "Xong. Mở terminal mới, đứng ở thư mục gốc của project và gõ: claude-safe"
+install_history
+echo "Xong. Mở terminal mới, đứng ở thư mục gốc của project và gõ: claude-safe (xem lịch sử: claude-history)"

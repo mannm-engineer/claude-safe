@@ -6,8 +6,9 @@
 # Dùng: đứng ở thư mục gốc của project, gõ claude-safe. Bí danh này chạy:
 #   docker compose -f <thư mục cài>/compose.yaml --env-file <thư mục cài>/compose.env --project-directory . run --rm claude
 # Tên project (tiền tố tên volume, mỗi project một volume đăng nhập và session) là tên thư mục project, do Compose tự
-# lấy và chuẩn hóa. Dùng lệnh trần thì PHẢI có --env-file: thiếu nó, Compose đọc .env của project, và
-# COMPOSE_PROJECT_NAME trong đó sẽ đổi tên project, tức là gắn volume của project khác.
+# lấy và chuẩn hóa. --env-file thay cho .env của project, vì COMPOSE_PROJECT_NAME trong đó sẽ đổi tên project, tức là
+# gắn volume của project khác. Lệnh trần thiếu --env-file thì Compose báo lỗi thiếu CLAUDE_SAFE_HOME.
+# Mọi session đều được ghi lịch sử: thay đổi trong ~/.claude được commit vào git trên máy thật (xem history/).
 # Trong container: claude (hoặc claude --dangerously-skip-permissions); hoặc vào thẳng: claude-safe claude --resume.
 # Nhiều cửa sổ cho cùng một project: mỗi cửa sổ chạy lại lệnh trên, mỗi cửa sổ là một container riêng, dùng chung volume
 # của project (đăng nhập, session). Các cửa sổ không gọi được localhost của nhau.
@@ -26,10 +27,19 @@ services:
       - .:/workspace                        # devcontainer.json: workspaceMount ("." = --project-directory)
       - claude-config:/home/node/.claude    # devcontainer.json: claude-code-config-${devcontainerId}
       - claude-commandhistory:/commandhistory   # devcontainer.json: claude-code-bashhistory-${devcontainerId}
+      # Không có trong bản gốc: ghi lịch sử. Hook chỉ đọc, Claude trong container không sửa được. Đường dẫn tuyệt đối
+      # lấy từ compose.env, vì đường dẫn tương đối tính từ thư mục project, không phải thư mục cài.
+      - ${CLAUDE_SAFE_HOME:?thiếu --env-file <thư mục cài>/compose.env}/history/managed-settings.json:/etc/claude-code/managed-settings.json:ro
+      - ${CLAUDE_SAFE_HOME}/history/hook-commit.sh:/usr/local/bin/hook-commit.sh:ro
+      # Thư mục lịch sử nằm ngoài thư mục cài, vì cài lại sẽ xóa thư mục cài. Script cài tạo sẵn nó: nếu để Docker tự
+      # tạo, thư mục thuộc root, quyền 755, và hook (user node) không ghi được.
+      - ${CLAUDE_SAFE_HISTORY:?thiếu --env-file <thư mục cài>/compose.env}:/history
     environment:                            # devcontainer.json: containerEnv
       NODE_OPTIONS: --max-old-space-size=4096
       CLAUDE_CONFIG_DIR: /home/node/.claude
       POWERLEVEL9K_DISABLE_GITSTATUS: "true"
+      # Không có trong bản gốc: hook ghi lịch sử đặt repo theo project (mọi project đều ở /workspace).
+      CLAUDE_HISTORY_PROJECT: ${COMPOSE_PROJECT_NAME}
       # Không có trong bản gốc (bản gốc ghi TZ vào image lúc build, mặc định America/Los_Angeles): đặt lúc chạy thì
       # ghi đè giá trị trong image, đổi múi giờ không cần build lại. Sai múi giờ thì Claude thấy sai ngày, git và log
       # ghi sai giờ.
