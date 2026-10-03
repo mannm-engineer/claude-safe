@@ -2,14 +2,13 @@
 # (https://github.com/anthropics/claude-code/tree/52c76441cae91f6891e4712306bffb057ff6fec5/.devcontainer).
 # File này thay cho devcontainer.json của họ: cùng image, cùng user, cùng volume, cùng firewall, không cần IDE.
 #
-# Cách dùng: đặt hai biến môi trường, rồi
-#   docker compose -f <đường dẫn tới file này> up -d --wait       mở project (chờ firewall chạy xong)
-#   docker compose -f <đường dẫn tới file này> exec claude zsh    vào container, mỗi cửa sổ một lần
-#   docker compose -f <đường dẫn tới file này> down               khi xong (volume vẫn giữ đăng nhập và session)
+# Cách dùng: đặt hai biến môi trường, rồi chạy
+#   docker compose -f <đường dẫn tới file này> run --rm claude
 #     PROJECT_DIR   đường dẫn tới thư mục project
 #     PROJECT_NAME  tên riêng của project (chữ thường, số, '-', '_'; ví dụ shop): đặt tên volume đăng nhập và session
 # Trong container: claude (hoặc claude --dangerously-skip-permissions).
-# Nhiều cửa sổ cho cùng một project: mỗi cửa sổ exec vào cùng một container.
+# Nhiều cửa sổ cho cùng một project: mỗi cửa sổ chạy lại lệnh trên, mỗi cửa sổ là một container riêng, dùng chung volume
+# của project (đăng nhập, session). Các cửa sổ không gọi được localhost của nhau.
 
 # Tên project của Compose, cũng là tiền tố tên volume: mỗi project một volume ~/.claude (đăng nhập, session, memory),
 # như ${devcontainerId} của devcontainer.json. Mỗi project mới phải onboarding và đăng nhập một lần.
@@ -48,12 +47,8 @@ services:
     # devcontainer.json: postStartCommand + waitFor. Đặt ở entrypoint chứ không ở command: lệnh truyền vào
     # "run --rm claude <lệnh>" thay thế command, nên firewall đặt ở command sẽ bị bỏ qua. Firewall lỗi thì && dừng,
     # lệnh không chạy. ($$ là $ sau khi Compose xử lý biến.)
-    entrypoint: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh && touch /tmp/poststart-done && exec \"$$@\"", "--"]
-    command: ["sleep", "infinity"]
-    healthcheck:
-      test: ["CMD", "test", "-f", "/tmp/poststart-done"]
-      interval: 2s
-      retries: 60
+    entrypoint: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh && exec \"$$@\"", "--"]
+    command: ["zsh"]
 
 volumes:
   config:
