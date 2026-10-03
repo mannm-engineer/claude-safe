@@ -45,10 +45,11 @@ services:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: safe.directory
       GIT_CONFIG_VALUE_0: /workspace
-    # devcontainer.json: postStartCommand + waitFor. Firewall chạy khi container khởi động; lỗi hay không thì container
-    # vẫn chạy tiếp, như postStartCommand. Chạy xong thì ghi /tmp/poststart-done; healthcheck cộng "up --wait" chờ
-    # file này, như waitFor.
-    command: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh; touch /tmp/poststart-done; exec sleep infinity"]
+    # devcontainer.json: postStartCommand + waitFor. Đặt ở entrypoint chứ không ở command: lệnh truyền vào
+    # "run --rm claude <lệnh>" thay thế command, nên firewall đặt ở command sẽ bị bỏ qua. Firewall lỗi thì && dừng,
+    # lệnh không chạy. ($$ là $ sau khi Compose xử lý biến.)
+    entrypoint: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh && touch /tmp/poststart-done && exec \"$$@\"", "--"]
+    command: ["sleep", "infinity"]
     healthcheck:
       test: ["CMD", "test", "-f", "/tmp/poststart-done"]
       interval: 2s
