@@ -53,10 +53,11 @@ services:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: safe.directory
       GIT_CONFIG_VALUE_0: /workspace
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
     # devcontainer.json: postStartCommand + waitFor. Đặt ở entrypoint chứ không ở command: lệnh truyền vào
     # "run --rm claude <lệnh>" thay thế command, nên firewall đặt ở command sẽ bị bỏ qua. Firewall lỗi thì && dừng,
     # lệnh không chạy. ($$ là $ sau khi Compose xử lý biến.)
-    entrypoint: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh && exec \"$$@\"", "--"]
+    entrypoint: ["bash", "-c", "sudo /usr/local/bin/init-firewall.sh && { [ -f \"$$CLAUDE_CONFIG_DIR/.claude.json\" ] || echo '{\"hasCompletedOnboarding\": true}' > \"$$CLAUDE_CONFIG_DIR/.claude.json\"; } && exec \"$$@\"", "--"]
     command: ["zsh"]
 
 # Tên có tiền tố claude- vì tên project là tên thư mục: nếu chính project cũng dùng Compose (cùng tên project) và có

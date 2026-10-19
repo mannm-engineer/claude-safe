@@ -212,6 +212,24 @@ Hai ưu điểm của `-p` đều có cách thay rẻ hơn: `.env` chặn bằng
 không phải nhớ; tiền tố `claude-` (để không trùng với Compose của chính project) chuyển sang tên volume
 (`claude-config`).
 
+## diff-8: đăng nhập một lần cho mọi project
+
+- **Bản gốc:** đăng nhập lưu trong volume `~/.claude` của từng project, nên mỗi project phải đăng nhập riêng.
+- **Ở đây:** `CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}` trong `environment:`, lấy từ máy thật lúc chạy.
+  Tạo token một lần bằng `claude setup-token`, rồi thêm `export CLAUDE_CODE_OAUTH_TOKEN=<token>` vào `~/.bashrc`.
+  `entrypoint` tạo `$CLAUDE_CONFIG_DIR/.claude.json` với `{"hasCompletedOnboarding": true}` khi file chưa có; file đã
+  có thì giữ nguyên.
+- **Vì sao:** dùng chung một volume `~/.claude` cho mọi project cũng tránh được việc đăng nhập lại, nhưng trộn session,
+  rules và lịch sử của các project vào một chỗ. Token qua biến môi trường giữ nguyên mỗi project một volume. Volume
+  mới không có `.claude.json`, nên `claude` tương tác hiện màn hình chào (chọn theme, chọn cách đăng nhập) dù đã có
+  token; `claude -p` thì không.
+- **Được:** đăng nhập một lần trên mỗi máy; token không nằm trong repo hay image.
+- **Mất:** token nằm ở dạng chữ thường trong `~/.bashrc`; Claude trong container đọc được biến này; token hết hạn
+  (khoảng 1 năm) thì phải tạo lại. Máy thật không đặt biến thì giá trị rỗng, Claude hỏi đăng nhập như trước.
+- **Kiểm chứng:** với token thật, trong một thư mục mới (volume mới, không có `.credentials.json`), `claude -p` trả lời
+  được. `claude` tương tác: không có `.claude.json` thì hiện màn hình chào; có file do `entrypoint` tạo thì chỉ hỏi
+  trust thư mục.
+
 ## Tính năng thêm: ghi lịch sử
 
 Không có trong bản gốc. Mục đích: ghi lại mọi thay đổi Claude Code tạo ra trong `~/.claude` (transcript, `.claude.json`,
